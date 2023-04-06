@@ -1,9 +1,9 @@
-import { User } from '@root/infrastructure/entities/user.entity'
+import { IUser } from '@root/infrastructure/entities/user.entity'
 
 export interface IParams {
   userId?: number
 }
 
 export interface IResponse {
-  users: Array<User> | null
+  users: Array<IUser> | null
 }
