@@ -4,7 +4,9 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm'
+import { Todo } from './todo.entity'
 
 export interface IUser {
   id: number
@@ -24,4 +26,7 @@ export class User implements IUser {
 
   @UpdateDateColumn({ type: 'timestamp' })
   public updatedAt!: Date
+
+  @OneToMany(() => Todo, (todo) => todo.user)
+  todos: Todo[]
 }
