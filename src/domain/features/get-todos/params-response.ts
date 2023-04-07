@@ -1,13 +1,14 @@
-import { IUser } from '@root/infrastructure/entities/user.entity'
+import { ITodo } from '@root/infrastructure/entities/todo.entity'
 
 export interface IParams {
   userId?: number
-  name?: string
+  todoId?: number
+  title?: string
   page?: number
   limit?: number
 }
 
 export interface IResponse<TMeta> {
-  users: Array<IUser> | null
+  todos: Array<ITodo> | null
   meta: TMeta
 }

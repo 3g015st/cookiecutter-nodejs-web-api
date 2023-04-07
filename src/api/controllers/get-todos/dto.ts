@@ -1,15 +1,19 @@
 import { IsInt, IsString, IsOptional } from 'class-validator'
 import { Transform } from 'class-transformer'
 
-export class GetUsersQueryDto {
+export class GetTodosQueryDto {
   @IsOptional()
   @IsString()
   @Transform(({ value }) => value.toLowerCase())
-  name?: string
+  title?: string
 
   @IsInt()
   @IsOptional()
-  id?: number
+  userId?: number
+
+  @IsInt()
+  @IsOptional()
+  todoId?: number
 
   @IsInt()
   @IsOptional()

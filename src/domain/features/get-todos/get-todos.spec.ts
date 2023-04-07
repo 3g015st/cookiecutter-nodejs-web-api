@@ -1,17 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { GetUserUseCase } from './get-users.usecase'
+import { GetTodosUseCase } from './get-todos.usecase'
 import { InfrastructureModule } from '@root/infrastructure/infrastructure.module'
-import { IBackup, IMemoryDb, newDb } from 'pg-mem'
+import { IBackup, newDb } from 'pg-mem'
 import { DataSource, Repository } from 'typeorm'
 import { User } from '@root/infrastructure/entities/user.entity'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { Todo } from '@root/infrastructure/entities/todo.entity'
 
-describe('GetUserUseCase - Unit Testing', () => {
+describe('GetTodosUseCase - Unit Testing', () => {
   let backup: IBackup
-  let service: GetUserUseCase
+  let service: GetTodosUseCase
   let dataSource: DataSource
-  let repository: Repository<User>
+  let usersRepository: Repository<User>
+  let todoRepository: Repository<Todo>
 
   beforeAll(async () => {
     const db = newDb({
@@ -44,15 +45,17 @@ describe('GetUserUseCase - Unit Testing', () => {
         }),
         InfrastructureModule,
       ],
-      providers: [GetUserUseCase],
+      providers: [GetTodosUseCase],
     })
       .overrideProvider(DataSource)
       .useValue(dataSource)
       .compile()
 
-    service = module.get<GetUserUseCase>(GetUserUseCase)
+    service = module.get<GetTodosUseCase>(GetTodosUseCase)
 
-    repository = dataSource.getRepository(User)
+    usersRepository = dataSource.getRepository(User)
+    todoRepository = dataSource.getRepository(Todo)
+
     backup = db.backup()
   })
 
@@ -61,45 +64,58 @@ describe('GetUserUseCase - Unit Testing', () => {
   })
 
   beforeEach(async () => {
-    const johnDoeUser = repository.create({
+    const johnDoeUser = usersRepository.create({
       name: 'John Doe',
     })
 
-    const janeDoeUser = repository.create({
+    const janeDoeUser = usersRepository.create({
       name: 'Jane Doe',
     })
 
-    await repository.save(johnDoeUser)
-    await repository.save(janeDoeUser)
+    await usersRepository.save(johnDoeUser)
+    await usersRepository.save(janeDoeUser)
+
+    const todoOne = todoRepository.create({
+      title: 'John Doe #1',
+      user: johnDoeUser,
+    })
+
+    const todoTwo = todoRepository.create({
+      title: 'John Doe #2',
+      user: johnDoeUser,
+    })
+
+    const todoThree = todoRepository.create({
+      title: 'Jane Doe #1',
+      user: janeDoeUser,
+    })
+
+    await todoRepository.save(todoOne)
+    await todoRepository.save(todoTwo)
+    await todoRepository.save(todoThree)
   })
 
   afterEach(async () => {
     backup.restore()
   })
 
-  it('Should return all users', async () => {
-    const response = await service.execute({})
-    expect(response.users.length).toBe(2)
+  it('Should return all todos for John Doe', async () => {
+    const response = await service.execute({ userId: 1 })
+    expect(response.todos.length).toBe(2)
   })
 
-  it('Should return all user which user id is 2', async () => {
+  it('Should return all todos for Jane Doe', async () => {
     const response = await service.execute({ userId: 2 })
-    expect(response.users.length).toBe(1)
+    expect(response.todos.length).toBe(1)
   })
 
-  it('Should only return 1 item from page 1 which is John Doe, next request should return Jane Doe', async () => {
+  it('Should only return 1 item from page 1', async () => {
     const response = await service.execute({ page: 1, limit: 1 })
-    expect(response.users.length).toBe(1)
-    expect(response.users[0].name).toBe('John Doe')
-
-    const responseTwo = await service.execute({ page: 2, limit: 1 })
-    expect(responseTwo.users.length).toBe(1)
-    expect(responseTwo.users[0].name).toBe('Jane Doe')
+    expect(response.todos.length).toBe(1)
   })
 
-  it('Should return all user that has a name, John Doe using case insensitive query name', async () => {
-    const response = await service.execute({ name: 'John Doe'.toLowerCase() })
-    expect(response.users.length).toBe(1)
-    expect(response.users[0].name).toBe('John Doe')
+  it('Should return no todos for Jing Doe', async () => {
+    const response = await service.execute({ userId: 3 })
+    expect(response.todos.length).toBe(0)
   })
 })

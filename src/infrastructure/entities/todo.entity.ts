@@ -22,7 +22,7 @@ export class Todo implements ITodo {
   @Column({ type: 'varchar', length: 60 })
   public title!: string
 
-  @Column({ type: 'boolean' })
+  @Column({ type: 'boolean', default: false })
   public isDeleted!: boolean
 
   @CreateDateColumn({ type: 'timestamp' })

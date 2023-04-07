@@ -4,16 +4,19 @@ import { IParams, IResponse } from './params-response'
 import { User } from '@root/infrastructure/entities/user.entity'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Raw, Repository } from 'typeorm'
+import { IPaginationMeta, paginate } from 'nestjs-typeorm-paginate'
 
 @Injectable()
-export class GetUserUseCase implements IUseCase<IParams, IResponse> {
+export class GetUserUseCase
+  implements IUseCase<IParams, IResponse<IPaginationMeta>>
+{
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
   ) {}
 
-  async execute(params: IParams): Promise<IResponse> {
-    const { userId, name } = params
+  async execute(params: IParams): Promise<IResponse<IPaginationMeta>> {
+    const { userId, name, page, limit } = params
 
     let where = {}
 
@@ -30,10 +33,14 @@ export class GetUserUseCase implements IUseCase<IParams, IResponse> {
       }
     }
 
-    const users = await this.usersRepository.find({ where })
-
+    const { items, meta } = await paginate<User>(
+      this.usersRepository,
+      { page, limit },
+      { where },
+    )
     return {
-      users,
+      users: items,
+      meta,
     }
   }
 }
