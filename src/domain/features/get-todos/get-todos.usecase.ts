@@ -22,35 +22,21 @@ export class GetTodosUseCase
     let where = {}
 
     if (todoId) {
-      where = { ...where, id: todoId }
-      query = {
-        ...query,
-        where,
-      }
+      where['id'] = todoId
+      query['where'] = where
     }
 
     if (userId) {
-      where = { ...where, user: { id: userId } }
-      query = {
-        ...query,
-        relations: {
-          user: true,
-        },
-        where,
-      }
+      where['user'] = { id: userId }
+      query['relations'] = { user: true }
+      query['where'] = where
     }
 
     if (title) {
-      where = {
-        ...where,
-        title: Raw((alias) => `LOWER(${alias}) LIKE :value`, {
-          value: `%${name}%`,
-        }),
-      }
-      query = {
-        ...query,
-        where,
-      }
+      where['title'] = Raw((alias) => `LOWER(${alias}) LIKE :value`, {
+        value: `%${name}%`,
+      })
+      query['where'] = where
     }
 
     const { items, meta } = await paginate<Todo>(

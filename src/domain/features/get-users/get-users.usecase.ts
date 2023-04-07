@@ -21,16 +21,13 @@ export class GetUserUseCase
     let where = {}
 
     if (userId) {
-      where = { ...where, id: userId }
+      where['id'] = userId
     }
 
     if (name) {
-      where = {
-        ...where,
-        name: Raw((alias) => `LOWER(${alias}) LIKE :value`, {
-          value: `%${name}%`,
-        }),
-      }
+      where['name'] = Raw((alias) => `LOWER(${alias}) LIKE :value`, {
+        value: `%${name}%`,
+      })
     }
 
     const { items, meta } = await paginate<User>(
