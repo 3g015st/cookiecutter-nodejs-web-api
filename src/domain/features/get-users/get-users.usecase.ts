@@ -3,7 +3,7 @@ import { IUseCase } from '@root/domain/interfaces/use-case'
 import { IParams, IResponse } from './params-response'
 import { User } from '@root/infrastructure/entities/user.entity'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
+import { Raw, Repository } from 'typeorm'
 
 @Injectable()
 export class GetUserUseCase implements IUseCase<IParams, IResponse> {
@@ -13,12 +13,21 @@ export class GetUserUseCase implements IUseCase<IParams, IResponse> {
   ) {}
 
   async execute(params: IParams): Promise<IResponse> {
-    const { userId } = params
+    const { userId, name } = params
 
     let where = {}
 
     if (userId) {
       where = { ...where, id: userId }
+    }
+
+    if (name) {
+      where = {
+        ...where,
+        name: Raw((alias) => `LOWER(${alias}) LIKE :value`, {
+          value: `%${name}%`,
+        }),
+      }
     }
 
     const users = await this.usersRepository.find({ where })

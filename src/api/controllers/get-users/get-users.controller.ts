@@ -8,6 +8,9 @@ export class GetUsersController {
 
   @Get()
   async getUsers(@Query() query: GetUsersQueryDto) {
-    return this.getUsersUseCase.execute({ userId: query?.id })
+    return this.getUsersUseCase.execute({
+      userId: query?.id,
+      name: query?.name,
+    })
   }
 }
